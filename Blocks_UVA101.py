@@ -2,41 +2,83 @@ class Node(object):
 	def __init__(self, num):
 		self.num = num
 		self.pile = num
+		self.above = None
+		self.below = None
+
+def return_to_initial(block):
+	if not block: return
+	return_to_initial(block.above)
+	block.below.above = None
+	block.below = None
+	block.pile = block.num
+
 def main():
 	n = input()
-	blocks = dict((i, [Node(i)]) for i in xrange(n))
+	blocks = [Node(i) for i in xrange(n)]
 	while True:
 		string = raw_input()
 		if string == 'quit': break
-		command, com2, a, b = string.split()
-		if a != b:
-			pile_a = blocks[Node(a).pile]
-			pile_b = blocks[Node(b).pile]
+		command, a, com2, b = string.split()
+		a = int(a)
+		b = int(b)
+		if a != b and blocks[a].pile != blocks[b].pile:
 			if command == 'move':
 				if com2 == 'onto': 
-					move_onto(pile_a, pile_b, blocks)
+					move_onto(blocks[a], blocks[b])
 				else:
-					move_over(pile_a, pile_b, blocks)
+					move_over(blocks[a], blocks[b])
+			else:
+				if com2 == 'onto':
+					pile_onto(blocks[a], blocks[b])
+				else:
+					pile_over(blocks[a], blocks[b])
 
-	print_blocks(n, blocks)
 
-def move_onto(pile_a, pile_b, blocks):
-	moving_blocks_a = pile_a[pile_a.index(Node(a)) + 1:]
-	moving_blocks_b = pile_b[pile_b.index(Node(b)) + 1:]
-	if moving_blocks_a:
-		for i in moving_blocks_a:
+	print_blocks(blocks)
 
-def print_blocks(n, blocks):
-	for i in xrange(n):
-		print '{}: {}\n'.format(i, printList(blocks[i]))
+def move_onto(a, b):
+	if a.below: a.below.above = None
+	return_to_initial(a.above)
+	return_to_initial(b.above)
+	b.above = a
+	a.pile = b.pile
+	a.below = b
 
-def printList(lst):
-	s = ''
-	if not lst:
-		return 
-	for i in lst:
-		s += (str(i.num) + ' ')
-	return s[:-2]
+def move_over(a, b):
+	if a.below: a.below.above = None
+	while b.above: b = b.above
+	return_to_initial(a.above)
+	b.above = a
+	a.pile = b.pile
+	a.below = b
+
+def pile_onto(a, b):
+	if a.below: a.below.above = None
+	return_to_initial(b.above)
+	b.above = a
+	a.below = b
+	while a: 
+		a.pile = b.pile
+		a = a.above
+
+def pile_over(a, b):
+	if a.below: a.below.above = None
+	while b.above: b = b.above
+	b.above = a
+	a.below = b
+	while a: 
+		a.pile = b.pile
+		a = a.above
+
+def print_blocks(blocks):
+	for i in xrange(len(blocks)):
+		print '{}:'.format(i),
+		if not blocks[i].below:
+			temp = blocks[i]
+			while temp:
+				print ' {}'.format(temp.num),
+				temp = temp.above
+		print
 
 if __name__=='__main__':
 	main()
